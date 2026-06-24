@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+@import 'tailwindcss';
+@plugin "daisyui" {
+  themes: light --default;
+}
+
+@plugin "daisyui/theme" {
+  name: 'light';
+  default: true;
+  --color-primary: #caeb66;
+  --color-secondary: #03373d;
+}
+
+body {
+  font-family: 'Urbanist', sans-serif;
+  font-optical-sizing: auto;
+  background: #eaeced;
+}
+
+.carousel .control-dots {
+  text-align: left !important;
+  padding-left: 5% !important;
+  margin: 0 !important;
+  bottom: 68px !important;
+}
+
+.carousel .control-dots .dot {
+  background-color: #c3dfe2 !important;
+  width: 10px !important;
+  height: 3px !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.carousel .control-dots .dot.selected {
+  background-color: var(--color-secondary) !important;
+  width: 24px !important;
+}
+
+/* coverflow carousel  */
+
+/* Custom active vs inactive slide states */
+.testimonial-carousel-wrapper .swiper-slide {
+  opacity: 0.25; /* Highly faded side cards matching your image */
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+.testimonial-carousel-wrapper .swiper-slide-active {
+  opacity: 1; /* Fully visible centered card */
+}
+
+/* Customizing the Swiper Bullet Dots */
+.testimonial-carousel-wrapper
+  .custom-swiper-pagination
+  .swiper-pagination-bullet {
+  width: 8px !important;
+  height: 8px !important;
+  background-color: #aabcbf !important; /* Soft muted gray-blue */
+  opacity: 0.6 !important;
+  margin: 0 4px !important;
+  border-radius: 50% !important;
+  transition: all 0.3s ease !important;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.testimonial-carousel-wrapper
+  .custom-swiper-pagination
+  .swiper-pagination-bullet-active {
+  background-color: var(
+    --color-secondary
+  ) !important; /* Your dark dark teal theme */
+  opacity: 1 !important;
+  transform: scale(1.1);
+}
