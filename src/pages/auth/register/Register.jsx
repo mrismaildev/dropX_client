@@ -1,5 +1,10 @@
 import { useForm } from 'react-hook-form';
 import { FcGoogle } from 'react-icons/fc';
+import { updateProfile } from 'firebase/auth';
+import useAuth from '../../../hooks/useAuth';
+import Swal from 'sweetalert2';
+import axios from 'axios';
+import { Link, useLocation, useNavigate } from 'react-router';
 
 const Register = () => {
   const {
@@ -7,9 +12,61 @@ const Register = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const { createUser } = useAuth();
+
+  const location = useLocation();
+  console.log('in register', location);
+  const navigate = useNavigate();
 
   const handleRegistration = data => {
-    console.log(data);
+    console.log(data.photo[0]);
+
+    const profileImg = data.photo[0];
+    createUser(data.email, data.password)
+      .then(result => {
+        const loggedUser = result.user;
+        //store the image and get the photo url
+        const formData = new FormData();
+        formData.append('image', profileImg);
+        const imageApiUrl = `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_image_key}`;
+
+        axios.post(imageApiUrl, formData).then(res => {
+          console.log('after image upload', res);
+          updateProfile(loggedUser, {
+            displayName: data.name,
+            photoURL: res.data.data.url,
+          })
+            .then(() => {
+              Swal.fire({
+                title: 'Success!',
+                text: 'Account created successfully welcome to dropX.',
+                icon: 'success',
+              });
+
+              navigate(location.state || '/');
+            })
+            .catch(profileErr => {
+              console.error('Profile update issue:', profileErr.message);
+            });
+        });
+      })
+      .catch(err => {
+        console.error('Authentication server response:', err.message);
+        let friendlyMessage = 'Something went wrong. Please try again.';
+        if (
+          err.code === 'auth/email-already-in-reply' ||
+          err.code === 'auth/email-already-in-use'
+        ) {
+          friendlyMessage =
+            'This email is already registered. Try logging in instead.';
+        }
+
+        Swal.fire({
+          title: 'Registration Failed',
+          text: friendlyMessage,
+          icon: 'error',
+        });
+      });
   };
 
   return (
@@ -26,21 +83,50 @@ const Register = () => {
           </p>
         </div>
 
-        {/* --- Profile Image Upload Placeholder using DaisyUI Avatar --- */}
-        <div className="text-left mb-6">
-          <div className="avatar placeholder relative group cursor-pointer">
-            <div className="w-16 h-16 rounded-full bg-base-200 text-neutral-content hover:bg-base-300 transition-colors">
-              <span className="text-2xl">👤</span>
-            </div>
-            {/* Custom overlay badge matching your primary theme color placement */}
-            <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center text-[10px] text-secondary font-bold shadow-xs">
-              ↑
-            </span>
-          </div>
-        </div>
-
         {/* --- Form Section using DaisyUI Form Controls --- */}
         <form onSubmit={handleSubmit(handleRegistration)} className="space-y-4">
+          {/* User Image Circle Upload Field */}
+          <div className="form-control w-full items-center justify-center my-4">
+            <label className="label py-1">
+              <span className="label-text font-bold text-secondary text-[15px] tracking-tight">
+                Profile Picture
+              </span>
+            </label>
+
+            {/* Clickable Circle Container */}
+            <label className="relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-base-200 border-2 border-dashed border-gray-300 hover:border-primary text-neutral-content hover:bg-base-300 transition-all cursor-pointer group overflow-hidden">
+              {/* Hidden native file input handled by React Hook Form */}
+              <input
+                {...register('photo', {
+                  required: true,
+                })}
+                type="file"
+                accept="image/*"
+                className="hidden"
+              />
+
+              {/* Inside Circle Content (Icon and Tiny Text) */}
+              <div className="flex flex-col items-center justify-center text-center p-2 select-none">
+                <span className="text-2xl group-hover:scale-110 transition-transform">
+                  📷
+                </span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">
+                  Upload
+                </span>
+              </div>
+
+              {/* Smooth dark overlay effect on hover */}
+              <div className="absolute inset-0 bg-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+            </label>
+          </div>
+
+          {/* Validation Error Message */}
+          {errors.photo && (
+            <p className="text-rose-500 text-sm font-semibold mt-1 text-center w-full">
+              Profile photo is required
+            </p>
+          )}
+
           {/* Name Field */}
           <div className="form-control w-full items-start">
             <label className="label py-1">
@@ -48,6 +134,7 @@ const Register = () => {
                 Name
               </span>
             </label>
+
             <input
               {...register('name', {
                 required: true,
@@ -127,12 +214,13 @@ const Register = () => {
         <div className="mt-5 text-center space-y-4">
           <p className="text-neutral-content/70 text-[15px] font-medium">
             Already have an account?{' '}
-            <a
-              href="/login"
+            <Link
+              to={'/login'}
+              state={location.state}
               className="text-[#A3C639] hover:underline font-semibold"
             >
               Login
-            </a>
+            </Link>
           </p>
 
           {/* DaisyUI Divider utility class */}

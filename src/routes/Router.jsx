@@ -5,14 +5,26 @@ import Coverage from '../pages/coverage/Coverage';
 import AuthLayout from '../layouts/AuthLayout';
 import Login from '../pages/auth/login/Login';
 import Register from '../pages/auth/register/Register';
+import LoadingPage from '../components/sheard/LoadingPage';
+import PrivetRout from './PrivetRout';
+import Rider from '../pages/rider/Rider';
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
+    hydrateFallbackElement: <LoadingPage />,
     children: [
       {
         index: true,
         Component: Home,
+      },
+      {
+        path: '/rider',
+        element: (
+          <PrivetRout>
+            <Rider></Rider>
+          </PrivetRout>
+        ),
       },
       {
         path: 'coverage',

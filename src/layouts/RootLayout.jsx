@@ -4,7 +4,9 @@ import Navbar from '../components/sheard/Navbar';
 const RootLayout = () => {
   return (
     <div className="">
-      <Navbar />
+
+        <Navbar />
+    
       <Outlet></Outlet>
       {/* <Footer /> */}
     </div>
