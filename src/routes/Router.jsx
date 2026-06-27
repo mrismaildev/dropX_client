@@ -8,6 +8,7 @@ import Register from '../pages/auth/register/Register';
 import LoadingPage from '../components/sheard/LoadingPage';
 import PrivetRout from './PrivetRout';
 import Rider from '../pages/rider/Rider';
+import SendPercel from '../pages/sendParcel/SendPercel';
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -17,6 +18,15 @@ export const router = createBrowserRouter([
       {
         index: true,
         Component: Home,
+      },
+      {
+        path: '/sendPercel',
+        loader: () => fetch('/warehouses.json').then(res => res.json()),
+        element: (
+          <PrivetRout>
+            <SendPercel></SendPercel>
+          </PrivetRout>
+        ),
       },
       {
         path: '/rider',
