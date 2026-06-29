@@ -1,11 +1,12 @@
-import { useForm, Watch } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useLoaderData } from 'react-router';
+import Swal from 'sweetalert2';
 
 const SendPercel = () => {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -17,14 +18,13 @@ const SendPercel = () => {
   const serviceDuplicate = useLoaderData();
   const center = serviceDuplicate.map(c => c.region);
   const allRegion = [...new Set(center)];
-  const senderRegion = watch('senderRegion');
+  const senderRegion = useWatch({ control, name: 'senderRegion' });
+  const receiverRegion = useWatch({ control, name: 'receiverRegion' });
 
   const districtsByRegion = region => {
     const regionDistrict = serviceDuplicate.filter(c => c.region === region);
 
     const districts = regionDistrict.map(d => d.district);
-
-    console.log('this is your distric', districts);
 
     return districts;
   };
@@ -32,7 +32,93 @@ const SendPercel = () => {
   districtsByRegion('Dhaka');
 
   const onSubmitParcel = data => {
-    console.log('this is percel data', data);
+    console.log(data);
+    const isDocument = data.parcelType === 'Document';
+    const isSameDistric = data.senderDsitrict === data.receiverDistrict;
+    const parcelWeight = parseFloat(data.parcelWeight);
+
+    let cost = 0;
+    if (isDocument) {
+      cost = isSameDistric ? 60 : 80;
+    } else {
+      if (parcelWeight < 3) {
+        cost = isSameDistric ? 110 : 150;
+      } else {
+        const minCharge = isSameDistric ? 110 : 150;
+        const extraWeight = parcelWeight - 3;
+        const extraCharge = isSameDistric
+          ? extraWeight * 40
+          : extraWeight * 40 + 40;
+
+        cost = minCharge + extraCharge;
+      }
+    }
+    console.log('cost', cost);
+    // --- INDUSTRY STANDARD SWEETALERT2 POPUP TREE ---
+    Swal.fire({
+      title:
+        '<span class="text-xl font-black text-secondary tracking-tight uppercase">Billing Summary</span>',
+      html: `
+      <div className="font-sans text-left space-y-3 pt-2">
+        <p className="text-[15px] font-semibold text-gray-500 flex justify-between">
+          <span>Parcel Category:</span> 
+          <span className="text-secondary font-bold">${isDocument ? '📄 Document' : '📦 Package'}</span>
+        </p>
+        ${
+          !isDocument
+            ? `
+        <p className="text-[15px] font-semibold text-gray-500 flex justify-between">
+          <span>Total Weight:</span> 
+          <span className="text-secondary font-bold">${parcelWeight} KG</span>
+        </p>
+        `
+            : ''
+        }
+        <p className="text-[15px] font-semibold text-gray-500 flex justify-between">
+          <span>Shipping Area:</span> 
+          <span className="text-secondary font-bold">${isSameDistric ? '🏙️ Inside District' : '🚛 Inter-District'}</span>
+        </p>
+        
+        <div className="w-full h-px bg-gray-100 my-4"></div>
+        
+        <p className="text-[17px] font-black text-secondary flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
+          <span>Total Delivery Fee:</span> 
+          <span className="text-2xl font-black text-primary-content bg-primary px-3 py-1 rounded-lg">${cost} ৳</span>
+        </p>
+      </div>
+    `,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#A3C639', // Your brand's custom neon-green/primary color
+      cancelButtonColor: '#1e2321', // Your brand's secondary dark layout scale
+      confirmButtonText: 'Confirm Booking',
+      cancelButtonText: 'Review Details',
+      background: '#ffffff',
+      customClass: {
+        popup: 'rounded-[24px] p-6 border border-gray-100 shadow-xl',
+        confirmButton:
+          'btn font-bold text-[15px] px-6 rounded-xl border-none h-11 min-h-11',
+        cancelButton:
+          'btn font-bold text-[15px] px-6 rounded-xl border-none h-11 min-h-11',
+      },
+    }).then(result => {
+      if (result.isConfirmed) {
+        // User accepted the price matrix
+        console.log(
+          'User confirmed booking. Proceeding with database registration...',
+        );
+
+        // TODO: Place your backend API fetch request or state synchronization here!
+        
+        Swal.fire({
+          title: 'Booking Confirmed!',
+          text: 'Your delivery request is being assigned to a rider.',
+          icon: 'success',
+          confirmButtonColor: '#A3C639',
+          customClass: { popup: 'rounded-[24px]' },
+        });
+      }
+    });
   };
 
   return (
@@ -285,6 +371,25 @@ const SendPercel = () => {
               <div className="form-control w-full items-start">
                 <label className="label py-1">
                   <span className="label-text font-bold text-secondary text-[15px]">
+                    Receiver Region
+                  </span>
+                </label>
+                <select
+                  {...register('receiverRegion', { required: true })}
+                  className="select select-bordered w-full rounded-lg bg-base-100 text-gray-400 border-gray-200 focus:select-primary text-[15px] font-medium h-12"
+                >
+                  <option value="">Select your Region</option>
+
+                  {allRegion.map(r => (
+                    <option value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Receiver District Select Box */}
+              <div className="form-control w-full items-start">
+                <label className="label py-1">
+                  <span className="label-text font-bold text-secondary text-[15px]">
                     Receiver District
                   </span>
                 </label>
@@ -293,9 +398,10 @@ const SendPercel = () => {
                   className="select select-bordered w-full rounded-lg bg-base-100 text-gray-400 border-gray-200 focus:select-primary text-[15px] font-medium h-12"
                 >
                   <option value="">Select your District</option>
-                  <option value="dhaka">Dhaka</option>
-                  <option value="chattogram">Chattogram</option>
-                  <option value="sylhet">Sylhet</option>
+
+                  {districtsByRegion(receiverRegion).map(r => (
+                    <option value={r}>{r}</option>
+                  ))}
                 </select>
               </div>
 
