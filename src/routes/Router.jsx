@@ -9,6 +9,8 @@ import LoadingPage from '../components/sheard/LoadingPage';
 import PrivetRout from './PrivetRout';
 import Rider from '../pages/rider/Rider';
 import SendPercel from '../pages/sendParcel/SendPercel';
+import DashboardLayout from '../layouts/DashboardLayout';
+import Myparcels from '../pages/dashboard/myparcels/Myparcels';
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -54,6 +56,21 @@ export const router = createBrowserRouter([
       {
         path: 'register',
         Component: Register,
+      },
+    ],
+  },
+
+  {
+    path: '/dashboard',
+    element: (
+      <PrivetRout>
+        <DashboardLayout></DashboardLayout>
+      </PrivetRout>
+    ),
+    children: [
+      {
+        path: 'my-parcels',
+        Component: Myparcels,
       },
     ],
   },

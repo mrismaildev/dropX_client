@@ -1,6 +1,8 @@
 import { useForm, useWatch } from 'react-hook-form';
 import { useLoaderData } from 'react-router';
 import Swal from 'sweetalert2';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
+import useAuth from '../../hooks/useAuth';
 
 const SendPercel = () => {
   const {
@@ -14,6 +16,9 @@ const SendPercel = () => {
       parcelName: '',
     },
   });
+
+  const axiosSecure = useAxiosSecure();
+  const { user } = useAuth();
 
   const serviceDuplicate = useLoaderData();
   const center = serviceDuplicate.map(c => c.region);
@@ -33,6 +38,28 @@ const SendPercel = () => {
 
   const onSubmitParcel = data => {
     console.log(data);
+
+    // const isDocument = data.parcelType === 'Document';
+    // const isSameDistric = data.senderDsitrict === data.receiverDistrict;
+    // const parcelWeight = parseFloat(data.parcelWeight);
+
+    // let cost = 0;
+
+    // if (isDocument) {
+    //   cost = isSameDistric ? 60 : 80;
+    // } else {
+    //   if (parcelWeight < 3) {
+    //     cost = isSameDistric ? 110 : 150;
+    //   } else {
+    //     const minCharge = isSameDistric ? 110 : 150;
+    //     const extraWeght = parcelWeight - 3;
+    //     const extraCharge = isSameDistric
+    //       ? extraWeght * 40
+    //       : extraWeght * 40 + 40;
+    //     cost = minCharge + extraCharge;
+    //   }
+    // }
+
     const isDocument = data.parcelType === 'Document';
     const isSameDistric = data.senderDsitrict === data.receiverDistrict;
     const parcelWeight = parseFloat(data.parcelWeight);
@@ -53,7 +80,7 @@ const SendPercel = () => {
         cost = minCharge + extraCharge;
       }
     }
-    console.log('cost', cost);
+
     // --- INDUSTRY STANDARD SWEETALERT2 POPUP TREE ---
     Swal.fire({
       title:
@@ -61,28 +88,28 @@ const SendPercel = () => {
       html: `
       <div className="font-sans text-left space-y-3 pt-2">
         <p className="text-[15px] font-semibold text-gray-500 flex justify-between">
-          <span>Parcel Category:</span> 
+          <span>Parcel Category:</span>
           <span className="text-secondary font-bold">${isDocument ? '📄 Document' : '📦 Package'}</span>
         </p>
         ${
           !isDocument
             ? `
         <p className="text-[15px] font-semibold text-gray-500 flex justify-between">
-          <span>Total Weight:</span> 
+          <span>Total Weight:</span>
           <span className="text-secondary font-bold">${parcelWeight} KG</span>
         </p>
         `
             : ''
         }
         <p className="text-[15px] font-semibold text-gray-500 flex justify-between">
-          <span>Shipping Area:</span> 
+          <span>Shipping Area:</span>
           <span className="text-secondary font-bold">${isSameDistric ? '🏙️ Inside District' : '🚛 Inter-District'}</span>
         </p>
-        
+
         <div className="w-full h-px bg-gray-100 my-4"></div>
-        
+
         <p className="text-[17px] font-black text-secondary flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
-          <span>Total Delivery Fee:</span> 
+          <span>Total Delivery Fee:</span>
           <span className="text-2xl font-black text-primary-content bg-primary px-3 py-1 rounded-lg">${cost} ৳</span>
         </p>
       </div>
@@ -107,9 +134,12 @@ const SendPercel = () => {
         console.log(
           'User confirmed booking. Proceeding with database registration...',
         );
-
         // TODO: Place your backend API fetch request or state synchronization here!
-        
+
+        axiosSecure.post('/parcels', data).then(res => {
+          console.log('after saving parcel', res.data);
+        });
+
         Swal.fire({
           title: 'Booking Confirmed!',
           text: 'Your delivery request is being assigned to a rider.',
@@ -227,6 +257,7 @@ const SendPercel = () => {
                   type="text"
                   placeholder="Sender Name"
                   {...register('senderName', { required: true })}
+                  defaultValue={user?.displayName}
                   className="input input-bordered w-full rounded-lg bg-base-100 text-secondary border-gray-200 focus:input-primary placeholder-gray-300 text-[15px] font-medium h-12"
                 />
               </div>
@@ -250,13 +281,14 @@ const SendPercel = () => {
               <div className="form-control w-full items-start">
                 <label className="label py-1">
                   <span className="label-text font-bold text-secondary text-[15px]">
-                    Sender Phone No
+                    Sender Email
                   </span>
                 </label>
                 <input
-                  type="tel"
-                  placeholder="Sender Phone No"
-                  {...register('senderPhone', { required: true })}
+                  type="email"
+                  placeholder="Sender Email"
+                  {...register('senderEmail', { required: true })}
+                  defaultValue={user?.email}
                   className="input input-bordered w-full rounded-lg bg-base-100 text-secondary border-gray-200 focus:input-primary placeholder-gray-300 text-[15px] font-medium h-12"
                 />
               </div>
@@ -356,13 +388,13 @@ const SendPercel = () => {
               <div className="form-control w-full items-start">
                 <label className="label py-1">
                   <span className="label-text font-bold text-secondary text-[15px]">
-                    Receiver Contact No
+                    Receiver Email
                   </span>
                 </label>
                 <input
-                  type="tel"
+                  type="email"
                   placeholder="Sender Contact No" // Preserved image text exactly
-                  {...register('receiverPhone', { required: true })}
+                  {...register('receiverEmail', { required: true })}
                   className="input input-bordered w-full rounded-lg bg-base-100 text-secondary border-gray-200 focus:input-primary placeholder-gray-300 text-[15px] font-medium h-12"
                 />
               </div>

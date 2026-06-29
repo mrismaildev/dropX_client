@@ -21,6 +21,10 @@ const Navbar = () => {
       <li>
         <NavLink to={'/sendpercel'}>Send Percel</NavLink>
       </li>
+
+      <li>
+        <NavLink to={'/dashboard/my-parcels'}>My parcels</NavLink>
+      </li>
     </>
   );
   const { user, loading, logOut } = useAuth();
