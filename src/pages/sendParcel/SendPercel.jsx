@@ -80,6 +80,7 @@ const SendPercel = () => {
         cost = minCharge + extraCharge;
       }
     }
+    data.cost = cost;
 
     // --- INDUSTRY STANDARD SWEETALERT2 POPUP TREE ---
     Swal.fire({
