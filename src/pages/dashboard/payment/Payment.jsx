@@ -78,7 +78,7 @@ const Payment = () => {
 
       {/* --- Action Button with Interactive Loading Layout --- */}
       <button
-        onClick={handlePayment}
+        onClick={() => handlePayment(parcel)}
         className="btn w-full bg-primary hover:bg-primary/90 text-secondary border-none font-black text-[15px] rounded-xl tracking-wide shadow-xs active:scale-98 transition-all h-12 min-h-12 flex items-center justify-center gap-2 cursor-pointer"
       >
         <FiCreditCard size={18} />

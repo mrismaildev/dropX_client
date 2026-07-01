@@ -1,5 +1,5 @@
 import { useForm, useWatch } from 'react-hook-form';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useNavigate } from 'react-router';
 import Swal from 'sweetalert2';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import useAuth from '../../hooks/useAuth';
@@ -19,6 +19,7 @@ const SendPercel = () => {
 
   const axiosSecure = useAxiosSecure();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const serviceDuplicate = useLoaderData();
   const center = serviceDuplicate.map(c => c.region);
@@ -139,14 +140,17 @@ const SendPercel = () => {
 
         axiosSecure.post('/parcels', data).then(res => {
           console.log('after saving parcel', res.data);
-        });
 
-        Swal.fire({
-          title: 'Booking Confirmed!',
-          text: 'Your delivery request is being assigned to a rider.',
-          icon: 'success',
-          confirmButtonColor: '#A3C639',
-          customClass: { popup: 'rounded-[24px]' },
+          if (res.data.insertedId) {
+            Swal.fire({
+              title: 'Booking Confirmed!',
+              text: 'Your delivery request is being assigned to a rider.',
+              icon: 'success',
+              confirmButtonColor: '#A3C639',
+              customClass: { popup: 'rounded-[24px]' },
+            });
+            navigate('/dashboard/my-parcels');
+          }
         });
       }
     });
@@ -286,6 +290,7 @@ const SendPercel = () => {
                   </span>
                 </label>
                 <input
+                  readOnly
                   type="email"
                   placeholder="Sender Email"
                   {...register('senderEmail', { required: true })}

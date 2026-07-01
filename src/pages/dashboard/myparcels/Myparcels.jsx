@@ -3,12 +3,12 @@ import useAuth from '../../../hooks/useAuth';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import { FiMoreVertical, FiEdit2, FiTrash2, FiBox } from 'react-icons/fi';
 import Swal from 'sweetalert2';
-import { Link } from 'react-router';
 
 const Myparcels = () => {
   const { user } = useAuth();
 
   const axiosSecure = useAxiosSecure();
+
   const { data: parcel = [], refetch } = useQuery({
     queryKey: ['my-parcel', user?.email],
     queryFn: async () => {
@@ -83,6 +83,23 @@ const Myparcels = () => {
     });
   };
 
+  const handlePayment = async pp => {
+    const paymentInfo = {
+      cost: pp.cost,
+      parcelId: pp._id,
+      senderEmail: pp.senderEmail,
+      parcelName: pp.parcelName,
+    };
+    console.log('submit', paymentInfo);
+    const res = await axiosSecure.post(
+      '/payment-checkout-session',
+      paymentInfo,
+    );
+
+    console.log(res.data.url);
+    window.location.assign(res.data.url);
+  };
+
   return (
     <div className="w-full bg-base-100 rounded-2xl border border-base-200 p-6 font-sans text-left shadow-xs">
       {/* --- Top Header Title Section --- */}
@@ -150,11 +167,12 @@ const Myparcels = () => {
                   {p.paymentStatus === 'paid' ? (
                     <span className="text-green-400">Paid</span>
                   ) : (
-                    <Link to={`/dashboard/payment/${p._id}`}>
-                      <button className="btn btn-primary btn-small text-secondary">
-                        Pay
-                      </button>
-                    </Link>
+                    <button
+                      onClick={() => handlePayment(p)}
+                      className="btn btn-primary btn-small text-secondary"
+                    >
+                      Pay
+                    </button>
                   )}
                 </td>
 

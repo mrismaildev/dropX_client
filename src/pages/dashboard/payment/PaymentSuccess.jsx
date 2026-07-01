@@ -1,9 +1,29 @@
+import { useEffect, useState } from 'react';
 import { FiArrowRight, FiCheckCircle, FiDownload } from 'react-icons/fi';
 import { Link, useSearchParams } from 'react-router';
+import useAxiosSecure from '../../../hooks/useAxiosSecure';
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
+  const [payementInfo, setPaymentInfo] = useState({});
   const sessionId = searchParams.get('session_id');
+  console.log(sessionId);
+  const axiosSecure = useAxiosSecure();
+
+  useEffect(() => {
+    if (sessionId) {
+      axiosSecure
+        .patch(`/payment-success?session_id=${sessionId}`)
+        .then(res => {
+          console.log(res.data);
+          setPaymentInfo({
+            transactionId: res.data.transactionId,
+            trakingId: res.data.trakingId,
+          });
+        });
+    }
+  }, [sessionId, axiosSecure]);
+
   return (
     <div className="min-h-[80vh] w-full flex items-center justify-center bg-base-100 font-sans p-4 text-left">
       {/* --- Main Success Container Card --- */}
@@ -30,16 +50,18 @@ const PaymentSuccess = () => {
         </p>
 
         {/* --- Stripe Session Tracker Card --- */}
-        {sessionId && (
+        {payementInfo?.transactionId && (
           <div className="bg-base-200/50 rounded-xl p-3 border border-base-200/60 my-6 text-left">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
               Stripe Reference ID:
             </span>
             <code className="text-xs font-mono font-bold text-secondary break-all bg-base-100 px-2 py-1 rounded border border-base-200 block">
-              {sessionId.substring(0, 24)}...
+              {payementInfo?.transactionId}
             </code>
           </div>
         )}
+
+        <div className="">TrakingId: {payementInfo?.trakingId}</div>
 
         {/* Horizontal separation line */}
         <div className="w-full h-px bg-gray-100 my-6"></div>
